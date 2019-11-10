@@ -1,3 +1,9 @@
+# Eric's hacks on top of SolidRun's kernel
+
+Using this repo to track my changes to Solidrun's build environment.
+
+My board currently working with serial, USB ethernet, SDcard boot and nvme root.
+
 # SolidRun's LX2160A COM express type 7 build scripts
 
 ## Introduction
