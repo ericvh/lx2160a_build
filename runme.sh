@@ -14,7 +14,7 @@ RELEASE=LSDK-19.06
 #UEFI_RELEASE=DEBUG
 #BOOT=xspi
 #BOOT_LOADER=uefi
-#DDR_SPEED=3200
+DDR_SPEED=2600
 #SERDES=8_5_2 # 8x10g
 #SERDES=13_5_2 # dual 100g
 #SERDES=20_5_2 # dual 40g
@@ -219,19 +219,6 @@ cat > kernel2160cex7.its << EOF
 				algo = "crc32";
 			};
 		};
-		initrd {
-			description = "initrd for arm64";
-			data = /incbin/("../../patches/linux/ramdisk_rootfs_arm64.ext4.gz");
-			type = "ramdisk";
-			arch = "arm64";
-			os = "linux";
-			compression = "none";
-			load = <0x00000000>;
-			entry = <0x00000000>;
-			hash@1 {
-				algo = "crc32";
-			};
-		};
 		lx2160acex7-dtb {
 			description = "lx2160acex7-dtb";
 			data = /incbin/("arch/arm64/boot/dts/freescale/fsl-lx2160a-cex7.dtb");
@@ -265,9 +252,9 @@ mkimage -f kernel2160cex7.its kernel-lx2160acex7.itb
 echo "Assembling image"
 cd $ROOTDIR/
 IMG=lx2160acex7_${SPEED}_${SERDES}_${BOOT}.img
-#dd if=/dev/zero of=images/${IMG} bs=1M count=101
+#dd if=/dev/zero of=images/${IMG} bs=1M seek=2050 count=1
 dd if=/dev/zero of=images/${IMG} bs=1M count=1
-#parted --script images/${IMG} mklabel msdos mkpart primary 1MiB 20MiB mkpart primary 20MiB 100MiB
+parted --script images/${IMG} mklabel msdos
 #dd if=/dev/zero of=images/boot.part bs=1M count=99
 
 # RCW+PBI+BL2 at block 8
@@ -293,9 +280,11 @@ dd if=$ROOTDIR/build/atf/tools/fiptool/fip_ddr_all.bin of=images/${IMG} bs=512 s
 dd if=$ROOTDIR/build/qoriq-mc-binary/lx2160a/mc_10.16.2_lx2160a.itb of=images/${IMG} bs=512 seek=20480 conv=notrunc
 
 # DPAA2 DPL at 0x6800
+echo ${DPL}
 dd if=$ROOTDIR/build/mc-utils/config/lx2160a/CEX7/${DPL} of=images/${IMG} bs=512 seek=26624 conv=notrunc
 
 # DPAA2 DPC at 0x7000
+echo ${DPC}
 dd if=$ROOTDIR/build/mc-utils/config/lx2160a/CEX7/${DPC} of=images/${IMG} bs=512 seek=28672 conv=notrunc
 
 # Device tree (UEFI) at 0x7800
